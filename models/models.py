@@ -84,9 +84,9 @@ class company(models.Model):
             }
          )
 
-        log.info('--> id rate %s',id_rate.name)
+        log.info('--> id rate %s',id_rate.id)
 
-        currency.write( {'rate_ids': [ [6,False,id_rate.name] ] } )
+        currency.write( {'rate_ids': [ [6,False,id_rate.id] ] } )
         
         return True
 
