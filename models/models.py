@@ -48,6 +48,8 @@ class company(models.Model):
 
 
     def _update_currency_bccr(self):
+
+        log.info('--> 1573844490')
         indicador = '318' #Venta Dolar, 317 compra
         fechaInicio = time.strftime("%d/%m/%Y")
         fechaFinal = time.strftime("%d/%m/%Y")
@@ -81,8 +83,10 @@ class company(models.Model):
             }
          )
 
+        log.info('--> id rate %s',id_rate)
 
         currency.write({'rate_ids':id_rate.name})
+        
         return True
 
 
