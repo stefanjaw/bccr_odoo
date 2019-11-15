@@ -37,6 +37,7 @@ class company(models.Model):
                elif company.currency_provider == 'banxico':
                    res = company._update_currency_banxico()
                elif company.currency_provider == 'bccr':
+                   log.info("CALL BCCR METHOD")
                    res = company._update_currency_bccr()
                if not res:
                    all_good = False
