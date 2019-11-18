@@ -12,9 +12,12 @@ log = logging.getLogger(__name__)
 
 class Currency(models.Model):
     _inherit = "res.currency"
-
     rate = fields.Float(string="Rate", digits=(18, 12))
-    
+
+class CurrencyRate(models.Model):
+    _inherit = "res.currency.rate"
+    rate = fields.Float(string="Rate", digits=(18, 12))
+
 class company(models.Model):
     _inherit = 'res.company'
     currency_provider = fields.Selection([
