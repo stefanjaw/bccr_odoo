@@ -84,7 +84,7 @@ class company(models.Model):
             }
          )'''
 
-        log.info('--> id rate %s',id_rate.id)
+        '''log.info('--> id rate %s',id_rate.id)'''
 
         currency.write( {'rate_ids': (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})} )
 
