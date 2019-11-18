@@ -77,16 +77,16 @@ class company(models.Model):
         if self.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date)]):
             raise exceptions.Warning(("El tipo de cambio de hoy ya existe!"))
 
-        id_rate = rate_model.create(
+        '''id_rate = rate_model.create(
             {'name': date,
              'rate': rate_calculation,
              'currency_id':currency.id,
             }
-         )
+         )'''
 
         log.info('--> id rate %s',id_rate.id)
 
-        currency.write( {'rate_ids': (0,0,id_rate)} )
+        currency.write( {'rate_ids': (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})} )
 
         return True
 
