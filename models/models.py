@@ -33,6 +33,7 @@ class company(models.Model):
     @api.multi
     def update_currency_rates(self):
            ''' This method is used to update all currencies given by the provider. Depending on the selection call _update_currency_ecb _update_currency_yahoo. '''
+           log.info('-->1576089385')
            res = True
            all_good = True
            for company in self:
