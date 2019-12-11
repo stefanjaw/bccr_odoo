@@ -6,8 +6,6 @@ import xmltodict
 
 import time
 import logging
-
-_logger = logging.getLogger(__name__)
 log = logging.getLogger(__name__)
 
 class Currency(models.Model):
@@ -38,7 +36,7 @@ class company(models.Model):
            all_good = True
            for company in self:
                if company.currency_provider == 'yahoo':
-                   _logger.warning("Call to the discontinued Yahoo currency rate web service.")
+                  log.warning("Call to the discontinued Yahoo currency rate web service.")
                elif company.currency_provider == 'ecb':
                    res = company._update_currency_ecb()
                elif company.currency_provider == 'fta':
@@ -50,7 +48,7 @@ class company(models.Model):
                    res = company._update_currency_bccr()
                if not res:
                    all_good = False
-                   _logger.warning(_('Unable to connect to the online exchange rate platform %s. The web service may be temporary down.') % company.currency_provider)
+                   log.warning(('Unable to connect to the online exchange rate platform %s. The web service may be temporary down.') % company.currency_provider)
                elif company.currency_provider:
                    company.last_currency_sync_date = fields.Date.today()
            return all_good
@@ -71,8 +69,8 @@ class company(models.Model):
             tree = etree.parse(url)
             root = tree.getroot()
             dic = xmltodict.parse(root.text)
-        except:
-            log.info('-->1576088109')
+        except Exception as e:
+            log.info('-->1576088109 %s',e)
             return False
             
         try:
@@ -91,8 +89,8 @@ class company(models.Model):
             currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})]   })
             
             return True
-        except:
-            log.info('-->1576088246')
+        except Exception as e:
+            log.info('-->1576088246 %s',e)
             return False
             
             
