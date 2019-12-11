@@ -71,32 +71,31 @@ class company(models.Model):
             root = tree.getroot()
             dic = xmltodict.parse(root.text)
         except:
+            log.info('-->1576088109')
             return False
+            
+        try:
+            value = float(dic[u'Datos_de_INGC011_CAT_INDICADORECONOMIC'][u'INGC011_CAT_INDICADORECONOMIC'][u'NUM_VALOR'])
+            date = dic[u'Datos_de_INGC011_CAT_INDICADORECONOMIC'][u'INGC011_CAT_INDICADORECONOMIC'][u'DES_FECHA']
 
-        value = float(dic[u'Datos_de_INGC011_CAT_INDICADORECONOMIC'][u'INGC011_CAT_INDICADORECONOMIC'][u'NUM_VALOR'])
-        date = dic[u'Datos_de_INGC011_CAT_INDICADORECONOMIC'][u'INGC011_CAT_INDICADORECONOMIC'][u'DES_FECHA']
-
-        rate_calculation = self.rate_calculation(value)
-        rate_model = self.env['res.currency.rate']
+            rate_calculation = self.rate_calculation(value)
+            rate_model = self.env['res.currency.rate']
 
 
-        currency = self.env['res.currency'].search([('name','=','USD')])
+            currency = self.env['res.currency'].search([('name','=','USD')])
 
-        if self.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date)]):
-            raise exceptions.Warning(("El tipo de cambio de hoy ya existe!"))
-
-        '''id_rate = rate_model.create(
-            {'name': date,
-             'rate': rate_calculation,
-             'currency_id':currency.id,
-            }
-         )'''
-
-        '''log.info('--> id rate %s',id_rate.id)'''
-
-        currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})]   })
-
-        return True
+            if self.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date)]):
+                raise exceptions.Warning(("El tipo de cambio de hoy ya existe!"))
+                
+            currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})]   })
+            
+            return True
+        except:
+            log.info('-->1576088246')
+            return False
+            
+            
+        
 
 
     def rate_calculation(self,value):
