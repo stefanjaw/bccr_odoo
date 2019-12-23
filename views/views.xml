@@ -1,60 +1,63 @@
-<odoo>
-  <data>
-    <!-- explicit list view definition -->
-    <!--
-    <record model="ir.ui.view" id="bccr_odoo12/.list">
-      <field name="name">bccr_odoo12/ list</field>
-      <field name="model">bccr_odoo12/.bccr_odoo12/</field>
-      <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
-      </field>
-    </record>
-    -->
-
-    <!-- actions opening views on models -->
-    <!--
-    <record model="ir.actions.act_window" id="bccr_odoo12/.action_window">
-      <field name="name">bccr_odoo12/ window</field>
-      <field name="res_model">bccr_odoo12/.bccr_odoo12/</field>
-      <field name="view_mode">tree,form</field>
-    </record>
-    -->
-
-    <!-- server action to the one above -->
-    <!--
-    <record model="ir.actions.server" id="bccr_odoo12/.action_server">
-      <field name="name">bccr_odoo12/ server</field>
-      <field name="model_id" ref="model_bccr_odoo12/_bccr_odoo12/"/>
-      <field name="state">code</field>
-      <field name="code">
-        action = {
-          "type": "ir.actions.act_window",
-          "view_mode": "tree,form",
-          "res_model": self._name,
-        }
-      </field>
-    </record>
-    -->
-
-    <!-- Top menu item -->
-    <!--
-    <menuitem name="bccr_odoo12/" id="bccr_odoo12/.menu_root"/>
-    -->
-    <!-- menu categories -->
-    <!--
-    <menuitem name="Menu 1" id="bccr_odoo12/.menu_1" parent="bccr_odoo12/.menu_root"/>
-    <menuitem name="Menu 2" id="bccr_odoo12/.menu_2" parent="bccr_odoo12/.menu_root"/>
-    -->
-    <!-- actions -->
-    <!--
-    <menuitem name="List" id="bccr_odoo12/.menu_1_list" parent="bccr_odoo12/.menu_1"
-              action="bccr_odoo12/.action_window"/>
-    <menuitem name="Server to list" id="bccr_odoo12/" parent="bccr_odoo12/.menu_2"
-              action="bccr_odoo12/.action_server"/>
-    -->
-  </data>
-</odoo>
+  <odoo>
+  
+      <!--<record id="res_config_settings_view_form" model="ir.ui.view">
+          <field name="name">res.config.settings.view.form.inherit.currency.rate.live</field>
+          <field name="model">res.config.settings</field>
+          <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+          <field name="arch" type="xml">
+              <xpath expr="//div[@id='update_currency_live']" position="after">
+                  <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}">
+                      <div class="row mt16">
+                          <label string="Service" for="currency_provider" class="col-md-3 o_light_label"/>
+                          <field name="currency_provider"/>
+                      </div>
+                      <div class="row">
+                          <label string="Email" for="email_bccr" class="col-md-3 o_light_label"/>
+                            <field name= "email_bccr"/>
+                      </div>
+                      <div class="row">
+                          <label string="Token" for="token_bccr" class="col-md-3 o_light_label"/>
+                          <field name= "token_bccr" password="1"/>
+                      </div> 
+                      <div class="row">
+                          <label string="Interval" for="currency_interval_unit" class="col-md-3 o_light_label"/>
+                          <field name="currency_interval_unit"/>
+                      </div>
+                      <div class="row">
+                          <label string="Next Run" for="currency_next_execution_date" class="col-md-3 o_light_label"/>
+                          <field name="currency_next_execution_date"/>
+                          <button name="update_currency_rates" type="object" class="btn-link">
+                              <i title="Update now" class="fa fa-fw fa-refresh"></i>
+                          </button>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <label string="Last Sync Date" for="last_currency_sync_date" class="col-md-3 o_light_label" attrs="{'invisible': [('last_currency_sync_date','=',False)]}"/>
+                      <field name="last_currency_sync_date"/>
+                  </div>
+              </xpath>
+          </field>
+      </record>-->
+  
+  
+  
+  
+  <!-- Inherit Form view -->
+  <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+    <field name="name">inherit.currency.rate.form</field>
+    <field name="model">res.config.settings</field>
+    <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+    <field name="arch" type="xml">
+          <field name="currency_provider" position="after">
+            <div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
+                  <label string="Email" for="email_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
+                  <field name= "email_bccr" style="margin-left:-8px"/>
+            </div>
+            <div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
+                <label string="Token" for="token_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
+                <field name= "token_bccr" password="1" style="margin-left:-8px"/>
+            </div>  
+          </field>  
+    </field>
+  </record>
+  </odoo>
