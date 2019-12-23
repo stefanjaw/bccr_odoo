@@ -71,51 +71,46 @@ class company(models.Model):
             fechaFinal = time.strftime("%d/%m/%Y")
             #S for Yes, N for No
             subNiveles='N'
-            correoElectronico = self.email_bccr
-            token = self.token_bccr
-
-            url="https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx/ObtenerIndicadoresEconomicosXML?Indicador="+indicador+"&FechaInicio="+fechaInicio+"&FechaFinal="+fechaFinal+"&Nombre=dmm&SubNiveles="+subNiveles+"&CorreoElectronico="+correoElectronico+"&Token="+token
-
-            try:
-                response = requests.get(url)
-                xml = response.text.replace('&lt;','<').replace('&gt;','>');
-                root = ET.fromstring(xml.encode('utf-8'))
-                ns = {'xmlns':'http://ws.sdde.bccr.fi.cr'}
-                indicadorEconomico = root.xpath("xmlns:Datos_de_INGC011_CAT_INDICADORECONOMIC/xmlns:INGC011_CAT_INDICADORECONOMIC", namespaces=ns)[0]
+            
+            for company in self:
                 
-            except Exception as e:
-                log.info('-->1576088109 %s',e)
-                message_bccr = root.text
-                if message_bccr:
-                    log.info('BCCR Mensaje --> %s', message_bccr)
-                    raise exceptions.Warning((message_bccr))
-                return False
+                correoElectronico = company.email_bccr
+                token = company.token_bccr
 
-            try:
-                value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
-                date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
+                url="https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx/ObtenerIndicadoresEconomicosXML?Indicador="+indicador+"&FechaInicio="+fechaInicio+"&FechaFinal="+fechaFinal+"&Nombre=dmm&SubNiveles="+subNiveles+"&CorreoElectronico="+correoElectronico+"&Token="+token
 
-                rate_calculation = self.rate_calculation(value)
-                rate_model = self.env['res.currency.rate']
-
-
-                currency = self.env['res.currency'].search([('name','=','USD')])
-
-                if self.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date)]):
-                    log.info("---> El tipo de cambio de hoy ya existe!")
-                    return True
+                try:
+                    response = requests.get(url)
+                    xml = response.text.replace('&lt;','<').replace('&gt;','>');
+                    root = ET.fromstring(xml.encode('utf-8'))
+                    ns = {'xmlns':'http://ws.sdde.bccr.fi.cr'}
+                    indicadorEconomico = root.xpath("xmlns:Datos_de_INGC011_CAT_INDICADORECONOMIC/xmlns:INGC011_CAT_INDICADORECONOMIC", namespaces=ns)[0]
                     
-                currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id})]   })
-                
+                except Exception as e:
+                    log.info('-->1576088109 %s',e)
+                    message_bccr = root.text
+                    if message_bccr:
+                        log.info('BCCR Mensaje --> %s', message_bccr)
+                        raise exceptions.Warning((message_bccr))
+                    return False
+
+                try:
+                    value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
+                    date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
+                    rate_calculation = company.rate_calculation(value)
+                    rate_model = company.env['res.currency.rate']
+                    currency = company.env['res.currency'].search([('name','=','USD')])
+
+                    if company.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)]):
+                        log.info("---> El tipo de cambio de hoy ya existe para la compañia %s !!" % (company.name))
+                    else:        
+                        currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id,'company_id':company.id})]   })
+                            
+                except Exception as e:
+                    log.info('-->1576088246 %s',e)
+                    return False
+                        
                 return True
-                
-            except Exception as e:
-                log.info('-->1576088246 %s',e)
-                return False
-            
-            
         
-
-
     def rate_calculation(self,value):
         return 1 / value
