@@ -48,7 +48,7 @@
     <field name="model">res.config.settings</field>
     <field name="inherit_id" ref="currency_rate_live.res_config_settings_view_form"/>
     <field name="arch" type="xml">
-     <xpath expr="//div[@class='row mt16']"  position="after">
+     <xpath expr="//div[@attrs='{'invisible': [('module_currency_rate_live', '=', False)]}']/div[@class='row mt16']"  position="after">
                 <div class="row mt16">
                     <label string="Email" for="email_bccr" class="col-lg-3 o_light_label"/>
                     <field name= "email_bccr" readonly="0"/>
