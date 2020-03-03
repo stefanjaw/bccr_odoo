@@ -49,14 +49,15 @@
     <field name="inherit_id" ref="currency_rate_live.res_config_settings_view_form"/>
     <field name="arch" type="xml">
           <field name="currency_provider" position="after">
-            <div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
+          <field name= "email_bccr"/>
+            <!--<div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
                   <label string="Email" for="email_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
                   <field name= "email_bccr" style="margin-left:-8px"/>
             </div>
             <div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
                 <label string="Token" for="token_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
                 <field name= "token_bccr" password="1" style="margin-left:-8px"/>
-            </div>  
+            </div> -->
           </field>  
     </field>
   </record>
