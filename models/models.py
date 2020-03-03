@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api ,exceptions
+from datetime import datetime
 import lxml.etree as ET
 import xmltodict
 import requests
@@ -63,12 +64,22 @@ class company(models.Model):
 
 
 
-    def _update_currency_bccr(self):
+    def _update_currency_bccr(self,date=None):
 
             log.info('--> 1573844490')
             indicador = '318' #Venta Dolar, 317 compra
-            fechaInicio = time.strftime("%d/%m/%Y")
-            fechaFinal = time.strftime("%d/%m/%Y")
+            
+            if date:
+                
+                date = datetime.strptime(date,"%Y-%m-%d")
+                fechaInicio = date.strftime("%d/%m/%Y")
+                fechaFinal = date.strftime("%d/%m/%Y")
+                    
+            elif not date:
+                
+                fechaInicio = time.strftime("%d/%m/%Y")
+                fechaFinal = time.strftime("%d/%m/%Y")
+                
             #S for Yes, N for No
             subNiveles='N'
             
@@ -102,7 +113,8 @@ class company(models.Model):
                     currency = company.env['res.currency'].search([('name','=','USD')])
 
                     if company.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)]):
-                        log.info("---> El tipo de cambio de hoy ya existe para la compañia %s !!" % (company.name))
+                        log.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company.name,fechaInicio))
+                        #return False
                     else:        
                         currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id,'company_id':company.id})]   })
                             
