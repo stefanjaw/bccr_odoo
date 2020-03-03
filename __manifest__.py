@@ -3,15 +3,15 @@
     'name': "bccr_odoo",
 
     'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+        Modulo para Tipo de Cambio en Costa Rica, para Odoo V12.
+        """,
 
     'description': """
         Long description of module's purpose
     """,
 
-    'author': "My CompanyX",
-    'website': "http://www.yourcompanyX.com",
+    'author': "Avalantec",
+    'website': "http://www.avalantec.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/master/odoo/addons/base/module/module_data.xml
