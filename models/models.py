@@ -18,11 +18,11 @@ class ResConfigSettings(models.TransientModel):
 
 class Currency(models.Model):
     _inherit = "res.currency"
-    rate = fields.Float(string="Rate", digits=(18, 12))
+    rate = fields.Float(string="Rate", digits=(18, 14))
 
 class CurrencyRate(models.Model):
     _inherit = "res.currency.rate"
-    rate = fields.Float(string="Rate", digits=(18, 12))
+    rate = fields.Float(string="Rate", digits=(18, 14))
 
 class company(models.Model):
     _inherit = 'res.company'
