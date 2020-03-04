@@ -11,20 +11,22 @@ log = logging.getLogger(__name__)
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
-    email_bccr = fields.Char(string="email_bccr",related="company_id.email_bccr")
-    token_bccr = fields.Char(string="token_bccr",related="company_id.token_bccr")
+    email_bccr = fields.Char(string="email_bccr",related="company_id.email_bccr",readonly=False)
+    token_bccr = fields.Char(string="token_bccr",related="company_id.token_bccr",readonly=False)
+    last_currency_sync_date = fields.Date(related="company_id.last_currency_sync_date", readonly=True)
 
 
-'''class Currency(models.Model):
+class Currency(models.Model):
     _inherit = "res.currency"
     rate = fields.Float(string="Rate", digits=(18, 12))
 
 class CurrencyRate(models.Model):
     _inherit = "res.currency.rate"
-    rate = fields.Float(string="Rate", digits=(18, 12))'''
+    rate = fields.Float(string="Rate", digits=(18, 12))
 
 class company(models.Model):
     _inherit = 'res.company'
+    last_currency_sync_date = fields.Date(string="Last Sync Date", readonly=True)
     email_bccr = fields.Char(string="Correo Electronico", )
     token_bccr = fields.Char(string="Password", )
     currency_provider = fields.Selection([

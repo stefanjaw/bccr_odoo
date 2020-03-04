@@ -57,11 +57,11 @@
                                 </div>
                                 <div class="row mt16">
                                     <label string="Email" for="email_bccr" class="col-lg-3 o_light_label"/>
-                                    <field name= "email_bccr" readonly="0"/>
+                                    <field name= "email_bccr"/>
                                 </div>
                                 <div class="row mt16">
                                     <label string="Token" for="token_bccr" class="col-lg-3 o_light_label"/>
-                                    <field name= "token_bccr" password="1" readonly="0"/>
+                                    <field name= "token_bccr" password="1"/>
                                 </div>
                                 <div class="row">
                                     <label string="Interval" for="currency_interval_unit" class="col-lg-3 o_light_label"/>
