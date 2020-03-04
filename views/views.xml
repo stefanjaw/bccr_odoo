@@ -48,25 +48,37 @@
     <field name="model">res.config.settings</field>
     <field name="inherit_id" ref="currency_rate_live.res_config_settings_view_form"/>
     <field name="arch" type="xml">
-     <xpath expr="//div[@attrs='{'invisible': [('module_currency_rate_live', '=', False)]}']/div[@class='row mt16']"  position="after">
-                <div class="row mt16">
-                    <label string="Email" for="email_bccr" class="col-lg-3 o_light_label"/>
-                    <field name= "email_bccr" readonly="0"/>
-                </div>
-                <div class="row mt16">
-                   <label string="Token" for="token_bccr" class="col-lg-3 o_light_label"/>
-                   <field name= "token_bccr" password="1" readonly="0"/>
-                </div>
-    </xpath>
 
-            <!--<div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
-                  <label string="Email" for="email_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
-                  <field name= "email_bccr" style="margin-left:-8px"/>
+            <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}" position="replace">
+                        <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}">
+                                <div class="row mt16">
+                                    <label string="Service" for="currency_provider" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_provider"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label string="Email" for="email_bccr" class="col-lg-3 o_light_label"/>
+                                    <field name= "email_bccr" readonly="0"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label string="Token" for="token_bccr" class="col-lg-3 o_light_label"/>
+                                    <field name= "token_bccr" password="1" readonly="0"/>
+                                </div>
+                                <div class="row">
+                                    <label string="Interval" for="currency_interval_unit" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_interval_unit"/>
+                                </div>
+                                <div class="row">
+                                    <label string="Next Run" for="currency_next_execution_date" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_next_execution_date"/>
+                                    <button name="update_currency_rates_manually" type="object" class="btn-link">
+                                        <i title="Update now" role="img" aria-label="Update now" class="fa fa-fw fa-refresh"/>
+                                    </button>
+                                </div>
+                            </div>
+
             </div>
-            <div class="row" attrs="{'invisible': [('currency_provider', '!=', 'bccr')]}">
-                <label string="Token" for="token_bccr" class="col-md-3 o_light_label" style="margin-left:15px" />
-                <field name= "token_bccr" password="1" style="margin-left:-8px"/>
-            </div> -->
+
+
     </field>
   </record>
   </odoo>
