@@ -1,60 +1,84 @@
-<odoo>
-  <data>
-    <!-- explicit list view definition -->
-<!--
-    <record model="ir.ui.view" id="bccr.list">
-      <field name="name">bccr list</field>
-      <field name="model">bccr.bccr</field>
-      <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
-      </field>
-    </record>
--->
+  <odoo>
+  
+      <!--<record id="res_config_settings_view_form" model="ir.ui.view">
+          <field name="name">res.config.settings.view.form.inherit.currency.rate.live</field>
+          <field name="model">res.config.settings</field>
+          <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+          <field name="arch" type="xml">
+              <xpath expr="//div[@id='update_currency_live']" position="after">
+                  <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}">
+                      <div class="row mt16">
+                          <label string="Service" for="currency_provider" class="col-md-3 o_light_label"/>
+                          <field name="currency_provider"/>
+                      </div>
+                      <div class="row">
+                          <label string="Email" for="email_bccr" class="col-md-3 o_light_label"/>
+                            <field name= "email_bccr"/>
+                      </div>
+                      <div class="row">
+                          <label string="Token" for="token_bccr" class="col-md-3 o_light_label"/>
+                          <field name= "token_bccr" password="1"/>
+                      </div> 
+                      <div class="row">
+                          <label string="Interval" for="currency_interval_unit" class="col-md-3 o_light_label"/>
+                          <field name="currency_interval_unit"/>
+                      </div>
+                      <div class="row">
+                          <label string="Next Run" for="currency_next_execution_date" class="col-md-3 o_light_label"/>
+                          <field name="currency_next_execution_date"/>
+                          <button name="update_currency_rates" type="object" class="btn-link">
+                              <i title="Update now" class="fa fa-fw fa-refresh"></i>
+                          </button>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <label string="Last Sync Date" for="last_currency_sync_date" class="col-md-3 o_light_label" attrs="{'invisible': [('last_currency_sync_date','=',False)]}"/>
+                      <field name="last_currency_sync_date"/>
+                  </div>
+              </xpath>
+          </field>
+      </record>-->
+  
+  
+  
+  
+  <!-- Inherit Form view -->
+  <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+    <field name="name">inherit.currency.rate.form</field>
+    <field name="model">res.config.settings</field>
+    <field name="inherit_id" ref="currency_rate_live.res_config_settings_view_form"/>
+    <field name="arch" type="xml">
 
-    <!-- actions opening views on models -->
-<!--
-    <record model="ir.actions.act_window" id="bccr.action_window">
-      <field name="name">bccr window</field>
-      <field name="res_model">bccr.bccr</field>
-      <field name="view_mode">tree,form</field>
-    </record>
--->
+            <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}" position="replace">
+                        <div attrs="{'invisible': [('module_currency_rate_live', '=', False)]}">
+                                <div class="row mt16">
+                                    <label string="Service" for="currency_provider" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_provider"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label string="Email" for="email_bccr" class="col-lg-3 o_light_label"/>
+                                    <field name= "email_bccr"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label string="Token" for="token_bccr" class="col-lg-3 o_light_label"/>
+                                    <field name= "token_bccr" password="1"/>
+                                </div>
+                                <div class="row">
+                                    <label string="Interval" for="currency_interval_unit" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_interval_unit"/>
+                                </div>
+                                <div class="row">
+                                    <label string="Next Run" for="currency_next_execution_date" class="col-lg-3 o_light_label"/>
+                                    <field name="currency_next_execution_date"/>
+                                    <button name="update_currency_rates_manually" type="object" class="btn-link">
+                                        <i title="Update now" role="img" aria-label="Update now" class="fa fa-fw fa-refresh"/>
+                                    </button>
+                                </div>
+                            </div>
 
-    <!-- server action to the one above -->
-<!--
-    <record model="ir.actions.server" id="bccr.action_server">
-      <field name="name">bccr server</field>
-      <field name="model_id" ref="model_bccr_bccr"/>
-      <field name="state">code</field>
-      <field name="code">
-        action = {
-          "type": "ir.actions.act_window",
-          "view_mode": "tree,form",
-          "res_model": model._name,
-        }
-      </field>
-    </record>
--->
+            </div>
 
-    <!-- Top menu item -->
-<!--
-    <menuitem name="bccr" id="bccr.menu_root"/>
--->
-    <!-- menu categories -->
-<!--
-    <menuitem name="Menu 1" id="bccr.menu_1" parent="bccr.menu_root"/>
-    <menuitem name="Menu 2" id="bccr.menu_2" parent="bccr.menu_root"/>
--->
-    <!-- actions -->
-<!--
-    <menuitem name="List" id="bccr.menu_1_list" parent="bccr.menu_1"
-              action="bccr.action_window"/>
-    <menuitem name="Server to list" id="bccr" parent="bccr.menu_2"
-              action="bccr.action_server"/>
--->
-  </data>
-</odoo>
+
+    </field>
+  </record>
+  </odoo>
