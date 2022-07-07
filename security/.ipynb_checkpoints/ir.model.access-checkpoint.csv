@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bccr_odoo12/_bccr_odoo12/,bccr_odoo12/.bccr_odoo12/,model_bccr_odoo12/_bccr_odoo12/,,1,0,0,0
