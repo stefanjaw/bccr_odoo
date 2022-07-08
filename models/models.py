@@ -5,22 +5,10 @@ import logging
 log = _logging = logging.getLogger(__name__)
 import datetime
 import pytz
-
-'''
-from datetime import datetime
-import lxml.etree as ET
-import xmltodict
+import urllib.parse
+from lxml import etree
 import requests
-import time
 
-'''
-
-'''
-class ResConfigSettings(models.TransientModel):
-    _inherit = "res.config.settings"
-    email_bccr = fields.Char(string="email_bccr",related="company_id.email_bccr")
-    token_bccr = fields.Char(string="token_bccr",related="company_id.token_bccr")
-'''
 
 class Currency(models.Model):
     _inherit = "res.currency"
@@ -35,51 +23,14 @@ class company(models.Model):
     _inherit = 'res.company'
     email_bccr = fields.Char(string="Correo Electronico", )
     token_bccr = fields.Char(string="Password", )
-    '''
-    currency_provider = fields.Selection([
-        ('bccr', 'Banco Central Costa Rica'),
-        ('yahoo', 'Yahoo (DISCONTINUED)'),
-        ('ecb', 'European Central Bank'),
-        ('fta', 'Federal Tax Administration (Switzerland)'),
-        ('banxico', 'Mexican Bank'),
-        ],  default='bccr', string='Service Provider')
-    '''
 
-    '''
-    #cambios
-    @api.multi
-    def update_currency_rates(self):
-    '''
-    ''' This method is used to update all currencies given by the provider. Depending on the selection call _update_currency_ecb _update_currency_yahoo. '''
-    '''
-           log.info('-->1576089385')
-           res = True
-           all_good = True
-           for company in self:
-               if company.currency_provider == 'yahoo':
-                  log.warning("Call to the discontinued Yahoo currency rate web service.")
-               elif company.currency_provider == 'ecb':
-                   res = company._update_currency_ecb()
-               elif company.currency_provider == 'fta':
-                   res = company._update_currency_fta()
-               elif company.currency_provider == 'banxico':
-                   res = company._update_currency_banxico()
-               elif company.currency_provider == 'bccr':
-                   log.info("CALL BCCR METHOD")
-                   res = company._update_currency_bccr()
-               if not res:
-                   all_good = False
-                   log.warning(('Unable to connect to the online exchange rate platform %s. The web service may be temporary down.') % company.currency_provider)
-               elif company.currency_provider:
-                   company.last_currency_sync_date = fields.Date.today()
-           return all_good
-    '''
-
-
-    def _update_currency_bccr(self, date=None, indicador=None):
+    def _update_currency_bccr(self, params={} ):
         log.info('1657212414, 1573844490')
         
-        main_url = "https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx"
+        if params.get('main_url'):
+            main_url = params.get('main_url')
+        else:
+            main_url = "https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx"
         
         company_ids = self.env['res.company'].search([
             ('email_bccr','!=', False),
@@ -89,68 +40,80 @@ class company(models.Model):
         if len( company_ids ) == 0:
             _logging.info("  No company detected to update BCCR")
         
-        if not indicador:
+        if params.get('indicador'):
+            indicador = params.get('indicador')
+        else:
             indicador = '318' #Venta Dolar, 317 compra
 
-        if date:
-            date = datetime.strptime(date,"%Y-%m-%d")
-            fechaInicio = date.strftime("%d/%m/%Y")
-            fechaFinal = date.strftime("%d/%m/%Y")
-
-        elif not date:
+        if params.get('date'):
+            date1 = datetime.datetime.strptime( params.get('date'),"%Y-%m-%d")
+            fechaInicio = date1.strftime("%d/%m/%Y")
+            fechaFinal = date1.strftime("%d/%m/%Y")
+        else:
             fechaInicio = datetime.datetime.now().astimezone( tz=pytz.timezone('America/Costa_Rica')).strftime("%d/%m/%Y")
             fechaFinal  = datetime.datetime.now().astimezone( tz=pytz.timezone('America/Costa_Rica')).strftime("%d/%m/%Y")
 
         #S for Yes, N for No
-        subNiveles='N'
-        for company_id in self:
+        if params.get('subNiveles'):
+            subNiveles=params.get('subNiveles')
+        else:
+            subNiveles='N'
+        
+        for company_id in company_ids:
+            
+            if str(indicador) == '318':
+                currency_id = company_id.env['res.currency'].search( [('name','=','USD')] )
+            else:
+                currency_id = False
 
-            correoElectronico = company_id.email_bccr
-            token = company_id.token_bccr
+            if currency_id == False:
+                _logging.info("  Currency not defined with Indicador {0} for Company: {1}".format(
+                    indicador, company_id.name ) )
+                continue
 
-            main_url = main_url + "ObtenerIndicadoresEconomicosXML?Indicador={0}&FechaInicio={1}&FechaFinal={2}".format(
+            req_url = main_url + "/ObtenerIndicadoresEconomicosXML?Indicador={0}&FechaInicio={1}&FechaFinal={2}".format(
                 indicador, fechaInicio, fechaFinal,
             )
-            main_url = main_url + "&Nombre={0}&SubNiveles={1}&CorreoElectronico={2}&Token={3}".format(
-                nombre, subNiveles, correoElectronico, token
+            req_url = req_url + "&Nombre={0}&SubNiveles={1}&CorreoElectronico={2}&Token={3}".format(
+                urllib.parse.quote( company_id.name ), subNiveles, company_id.email_bccr, company_id.token_bccr
             )
+
+            try:
+                response_obj = requests.get(req_url)
+                xml_txt = response_obj.text.replace('&lt;','<').replace('&gt;','>');
+                response_xml = etree.fromstring(xml_txt.encode('utf-8'))
+                response_nsmap = response_xml.nsmap
+                response_nsmap['xmlns'] = response_nsmap[None]
+                response_nsmap.pop(None)
+
+                bccr_value = float(response_xml.xpath(u'//xmlns:NUM_VALOR', namespaces=response_nsmap)[0].text)
+                bccr_date = response_xml.xpath(u'//xmlns:DES_FECHA', namespaces=response_nsmap)[0].text
+
+            except Exception as e:
+                log.info('-->1576088109 %s',e)
+                message_bccr = root.text
+                if message_bccr:
+                    log.info('BCCR Mensaje --> %s', message_bccr)
+                    raise exceptions.Warning((message_bccr))
+                return False
+
+            record_exist = self.env['res.currency.rate'].sudo().search([
+                ('name','=',bccr_date),
+                ('currency_id','=',currency_id.id),
+                ('company_id','=',company_id.id),
+            ])
+            if len( record_exist ) > 0:
+                _logging.info("  Exchange Record already exists: {0} - {1} {2}".format(
+                    bccr_date, currency_id.name, bccr_value
+                ))
+                continue
             
-            _logging.info("DEF112 main_url: {0}".format( main_url ) )
-
+            record_id = self.env['res.currency.rate'].sudo().create({
+                'name': bccr_date,
+                'rate': float( 1 / bccr_value ),
+                'currency_id': currency_id.id,
+                'company_id': company_id.id,
+            })
             
-#             try:
-#                 response = requests.get(url)
-#                 xml = response.text.replace('&lt;','<').replace('&gt;','>');
-#                 root = ET.fromstring(xml.encode('utf-8'))
-#                 ns = {'xmlns':'http://ws.sdde.bccr.fi.cr'}
-#                 indicadorEconomico = root.xpath("xmlns:Datos_de_INGC011_CAT_INDICADORECONOMIC/xmlns:INGC011_CAT_INDICADORECONOMIC", namespaces=ns)[0]
-
-#             except Exception as e:
-#                 log.info('-->1576088109 %s',e)
-#                 message_bccr = root.text
-#                 if message_bccr:
-#                     log.info('BCCR Mensaje --> %s', message_bccr)
-#                     raise exceptions.Warning((message_bccr))
-#                 return False
-
-#             try:
-#                 value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
-#                 date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
-#                 rate_calculation = company_id.rate_calculation(value)
-#                 rate_model = company_id.env['res.currency.rate']
-#                 currency = company_id.env['res.currency'].search([('name','=','USD')])
-
-#                 if company_id.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company_id.id)]):
-#                     log.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company_id.name,fechaInicio))
-#                     #return False
-#                 else:        
-#                     currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id,'company_id':company.id})]   })
-
-#             except Exception as e:
-#                 log.info('-->1576088246 %s',e)
-#                 return False
-
-#             return True
-        
-    def rate_calculation(self,value):
-        return 1 / value
+            _logging.info("  Created Record: {0}".format( record_id ) )
+        return True
