@@ -1,0 +1,30 @@
+<odoo>
+    <!-- Inherit Form view -->
+    <record id="res_company_form_inherit_bccr" model="ir.ui.view">
+        <field name="name">res.company.form.inherit.bccr</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="priority">98</field>
+        <field name="arch" type="xml">
+        <xpath expr="//notebook" position="inside">
+            <page string="BCCR">
+                <group>
+                    <group col="1">
+                        <h2 style="text-align: center;">Banco Central de Costa Rica</h2><br/>
+                        <h3 style="text-align: center;">Solicitud de Usuario y Token</h3><br/>
+                        <h5><p>&#8226; Ir a la página del BCCR <a href="https://www.bccr.fi.cr" target="_blank">https://www.bccr.fi.cr</a><br/>
+                        &#8226; Ir a Indicadores Económicos<br/>
+                        &#8226; Del listado de la izquierda, seleccionar Servicio Web<br/>
+                        &#8226; Se debe ingresar un correo, donde el BCCR va a enviar el Token</p>
+                        </h5>
+                    </group>
+                    <group>
+                        <field name="email_bccr"/>
+                        <field name="token_bccr" string="Token" password="True" />
+                    </group>
+                </group>
+            </page>
+        </xpath>
+        </field>
+     </record> 
+</odoo>

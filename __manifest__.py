@@ -24,10 +24,12 @@
     'depends': ['base','currency_rate_live'],
 
     # always loaded
-    #'data': [
-    #    # 'security/ir.model.access.csv',
-    #    #'views/views.xml',
-    #],
+    'data': [
+        'views/res_company.xml',
+        # 'security/ir.model.access.csv',
+        #'views/views.xml',
+        
+    ],
     # only loaded in demonstration mode
     #'demo': [
     #    'demo/demo.xml',

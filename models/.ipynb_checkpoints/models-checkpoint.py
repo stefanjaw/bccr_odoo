@@ -77,16 +77,17 @@ class company(models.Model):
 
 
     def _update_currency_bccr(self, date=None, indicador=None):
-        log.info('--> 1573844490')
+        log.info('1657212414, 1573844490')
+        
+        main_url = "https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx"
         
         company_ids = self.env['res.company'].search([
             ('email_bccr','!=', False),
             ('token_bccr','!=', False),
         ])
-        _logging.info("DEF86 compnay_ids: {0}".format( company_ids ) )
-        STOP90
         
-        main_url = "https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx"
+        if len( company_ids ) == 0:
+            _logging.info("  No company detected to update BCCR")
         
         if not indicador:
             indicador = '318' #Venta Dolar, 317 compra
@@ -102,8 +103,6 @@ class company(models.Model):
 
         #S for Yes, N for No
         subNiveles='N'
-        _logging.info("DEF97 self: {0}".format( self )  )
-        STOP97
         for company_id in self:
 
             correoElectronico = company_id.email_bccr
