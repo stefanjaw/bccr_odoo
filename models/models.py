@@ -29,20 +29,11 @@ class company(models.Model):
     last_currency_sync_date = fields.Date(string="Last Sync Date", readonly=True)
     email_bccr = fields.Char(string="Correo Electronico", )
     token_bccr = fields.Char(string="Password", )
-    currency_provider = fields.Selection([
-        ('bccr', 'Banco Central Costa Rica'),
-        ('yahoo', 'Yahoo (DISCONTINUED)'),
-        ('ecb', 'European Central Bank'),
-        ('fta', 'Federal Tax Administration (Switzerland)'),
-        ('banxico', 'Mexican Bank'),
-        ],  default='bccr', string='Service Provider')
 
+    currency_provider = fields.Selection( selection_add=[('bccr', 'Banco Central Costa Rica')] )
 
-    #cambios
-    #@api.multi
     def update_currency_rates(self):
-           ''' This method is used to update all currencies given by the provider. Depending on the selection call _update_currency_ecb _update_currency_yahoo. '''
-           log.info('-->1576089385')
+           log.info('--> BCCR 1576089385')
            res = True
            all_good = True
            for company in self:
@@ -55,7 +46,6 @@ class company(models.Model):
                elif company.currency_provider == 'banxico':
                    res = company._update_currency_banxico()
                elif company.currency_provider == 'bccr':
-                   log.info("CALL BCCR METHOD")
                    res = company._update_currency_bccr()
                if not res:
                    all_good = False
@@ -68,8 +58,8 @@ class company(models.Model):
 
     def _update_currency_bccr(self,date=None):
 
-            log.info('--> 1573844490')
-            indicador = '318' #Venta Dolar, 317 compra
+            log.info('---> BCCR 1573844490')
+            indicador = '318' #Dolar: 318 Venta, 317 compra
             
             if date:
                 
@@ -89,6 +79,9 @@ class company(models.Model):
                 
                 correoElectronico = company.email_bccr
                 token = company.token_bccr
+                
+                if correoElectronico == False or token == False:
+                    raise exceptions.ValidationError("BCCR Error: Correo Electrónico o Token Inválido")
 
                 url="https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx/ObtenerIndicadoresEconomicosXML?Indicador="+indicador+"&FechaInicio="+fechaInicio+"&FechaFinal="+fechaFinal+"&Nombre=dmm&SubNiveles="+subNiveles+"&CorreoElectronico="+correoElectronico+"&Token="+token
 
@@ -109,22 +102,18 @@ class company(models.Model):
 
                 try:
                     value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
+                    
                     date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
-                    rate_calculation = company.rate_calculation(value)
-                    rate_model = company.env['res.currency.rate']
                     currency = company.env['res.currency'].search([('name','=','USD')])
-
+                    log.info(f"---> BCCR Info {date}: {value}")
                     if company.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)]):
                         log.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company.name,fechaInicio))
                         #return False
-                    else:        
-                        currency.write({ 'rate_ids':  [ (0,0, {'name': date,'rate': rate_calculation,'currency_id':currency.id,'company_id':company.id})]   })
+                    else:
+                        currency.write({ 'rate_ids':  [ (0,0, {'name': date,'inverse_company_rate': value,'currency_id':currency.id,'company_id':company.id})]   })
                             
                 except Exception as e:
                     log.info('-->1576088246 %s',e)
                     return False
                         
                 return True
-        
-    def rate_calculation(self,value):
-        return 1 / value
