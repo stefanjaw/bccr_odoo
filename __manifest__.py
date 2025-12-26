@@ -3,11 +3,11 @@
     'name': "bccr_odoo",
 
     'summary': """
-        Modulo para Tipo de Cambio en Costa Rica, para Odoo V16.
+        Modulo para Tipo de Cambio en Costa Rica, para Odoo V19.
         """,
 
     'description': """
-        Modulo para Tipo de Cambio en Costa Rica, para Odoo V16.
+        Modulo para Tipo de Cambio en Costa Rica, para Odoo V19.
         1573844490
     """,
 
@@ -26,10 +26,10 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
+        'views/res_config_settings.xml',
     ],
     # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
-    ],
+    # 'demo': [
+    #     'demo/demo.xml',
+    # ],
 }

@@ -7,22 +7,8 @@ import xmltodict
 import requests
 import time
 import logging
-log = logging.getLogger(__name__)
 
-class ResConfigSettings(models.TransientModel):
-    _inherit = "res.config.settings"
-    email_bccr = fields.Char(string="email_bccr",related="company_id.email_bccr",readonly=False)
-    token_bccr = fields.Char(string="token_bccr",related="company_id.token_bccr",readonly=False)
-    last_currency_sync_date = fields.Date(related="company_id.last_currency_sync_date", readonly=True)
-
-
-class Currency(models.Model):
-    _inherit = "res.currency"
-    rate = fields.Float(string="Rate", digits=(18, 14))
-
-class CurrencyRate(models.Model):
-    _inherit = "res.currency.rate"
-    rate = fields.Float(string="Rate", digits=(18, 14))
+_logging = _logger = logging.getLogger(__name__)
 
 class company(models.Model):
     _inherit = 'res.company'
@@ -33,12 +19,12 @@ class company(models.Model):
     currency_provider = fields.Selection( selection_add=[('bccr', 'Banco Central Costa Rica')] )
 
     def update_currency_rates(self):
-           log.info('--> BCCR 1576089385')
+           _logger.info('--> BCCR 1576089385')
            res = True
            all_good = True
            for company in self:
                if company.currency_provider == 'yahoo':
-                  log.warning("Call to the discontinued Yahoo currency rate web service.")
+                  _logger.info("Call to the discontinued Yahoo currency rate web service.")
                elif company.currency_provider == 'ecb':
                    res = company._update_currency_ecb()
                elif company.currency_provider == 'fta':
@@ -49,7 +35,7 @@ class company(models.Model):
                    res = company._update_currency_bccr()
                if not res:
                    all_good = False
-                   log.warning(('Unable to connect to the online exchange rate platform %s. The web service may be temporary down.') % company.currency_provider)
+                   _logger.info(('Unable to connect to the online exchange rate platform %s. The web service may be temporary down.') % company.currency_provider)
                elif company.currency_provider:
                    company.last_currency_sync_date = fields.Date.today()
            return all_good
@@ -58,7 +44,7 @@ class company(models.Model):
 
     def _update_currency_bccr(self,date=None):
 
-            log.info('---> BCCR 1573844490')
+            _logger.info('---> BCCR 1573844490')
             indicador = '318' #Dolar: 318 Venta, 317 compra
             
             if date:
@@ -93,10 +79,10 @@ class company(models.Model):
                     indicadorEconomico = root.xpath("xmlns:Datos_de_INGC011_CAT_INDICADORECONOMIC/xmlns:INGC011_CAT_INDICADORECONOMIC", namespaces=ns)[0]
                     
                 except Exception as e:
-                    log.info('-->1576088109 %s',e)
+                    _logger.info('-->1576088109 %s',e)
                     message_bccr = root.text
                     if message_bccr:
-                        log.info('BCCR Mensaje --> %s', message_bccr)
+                        _logger.info('BCCR Mensaje --> %s', message_bccr)
                         raise exceptions.Warning((message_bccr))
                     return False
 
@@ -104,16 +90,19 @@ class company(models.Model):
                     value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
                     
                     date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
+                    date = date[:-6]
                     currency = company.env['res.currency'].search([('name','=','USD')])
-                    log.info(f"---> BCCR Info {date}: {value}")
-                    if company.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)]):
-                        log.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company.name,fechaInicio))
+                    _logger.info(f"---> BCCR Info {date}: {value}")
+                    if company.env['res.currency.rate'].search(
+                        [('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)] ):
+                        _logger.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company.name,fechaInicio))
                         #return False
                     else:
+                        _logger.info("    ==== Creating Currency Record")
                         currency.write({ 'rate_ids':  [ (0,0, {'name': date,'inverse_company_rate': value,'currency_id':currency.id,'company_id':company.id})]   })
                             
                 except Exception as e:
-                    log.info('-->1576088246 %s',e)
+                    _logger.info('-->1576088246 %s',e)
                     return False
                         
                 return True
