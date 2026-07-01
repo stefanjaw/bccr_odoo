@@ -7,7 +7,7 @@ import xmltodict
 import requests
 import time
 import logging
-log = logging.getLogger(__name__)
+log = _logger = logging.getLogger(__name__)
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
@@ -62,58 +62,84 @@ class company(models.Model):
             indicador = '318' #Dolar: 318 Venta, 317 compra
             
             if date:
-                
                 date = datetime.strptime(date,"%Y-%m-%d")
                 fechaInicio = date.strftime("%d/%m/%Y")
                 fechaFinal = date.strftime("%d/%m/%Y")
-                    
             elif not date:
-                
                 fechaInicio = time.strftime("%d/%m/%Y")
                 fechaFinal = time.strftime("%d/%m/%Y")
-                
-            #S for Yes, N for No
-            subNiveles='N'
             
             for company in self:
-                
-                correoElectronico = company.email_bccr
                 token = company.token_bccr
                 
-                if correoElectronico == False or token == False:
+                if token in [False,"",None]:
                     raise exceptions.ValidationError("BCCR Error: Correo Electrónico o Token Inválido")
+                
+                base_url = "https://apim.bccr.fi.cr/"
+                endpoint = "SDDE/api/Bccr.GE.SDDE.Publico.Indicadores.API/cuadro/1/series"
+                url = base_url + endpoint
+                
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "User-Agent": "Mozilla/5.0"
+                }
 
-                url="https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx/ObtenerIndicadoresEconomicosXML?Indicador="+indicador+"&FechaInicio="+fechaInicio+"&FechaFinal="+fechaFinal+"&Nombre=dmm&SubNiveles="+subNiveles+"&CorreoElectronico="+correoElectronico+"&Token="+token
-
+                if date:
+                    date = datetime.strptime(date, "%Y-%m-%d")
+                else:
+                    date = datetime.today()
+    
+                fecha_inicio = date.strftime("%Y/%m/%d")
+                fecha_fin = fecha_inicio
+                
+                params = {
+                    "fechaInicio": fecha_inicio,
+                    "fechaFin": fecha_fin,
+                    "idioma": "ES"
+                }
+                
                 try:
-                    response = requests.get(url)
-                    xml = response.text.replace('&lt;','<').replace('&gt;','>');
-                    root = ET.fromstring(xml.encode('utf-8'))
-                    ns = {'xmlns':'http://ws.sdde.bccr.fi.cr'}
-                    indicadorEconomico = root.xpath("xmlns:Datos_de_INGC011_CAT_INDICADORECONOMIC/xmlns:INGC011_CAT_INDICADORECONOMIC", namespaces=ns)[0]
+                    response = requests.get(url, headers=headers, params=params)
+                    _logger.info("\tBCCR Response status: %s", response.status_code)
+                    data = response.json()
                     
-                except Exception as e:
-                    log.info('-->1576088109 %s',e)
-                    message_bccr = root.text
-                    if message_bccr:
-                        log.info('BCCR Mensaje --> %s', message_bccr)
-                        raise exceptions.Warning((message_bccr))
-                    return False
-
-                try:
-                    value = float(indicadorEconomico.xpath("xmlns:NUM_VALOR", namespaces=ns)[0].text)
-                    
-                    date = indicadorEconomico.xpath("xmlns:DES_FECHA", namespaces=ns)[0].text
-                    currency = company.env['res.currency'].search([('name','=','USD')])
-                    log.info(f"---> BCCR Info {date}: {value}")
-                    if company.env['res.currency.rate'].search([('currency_id','=',currency.id),('name','=',date),('company_id','=',company.id)]):
-                        log.info("---> El tipo de cambio de hoy ya existe para la compañia %s %s!!" % (company.name,fechaInicio))
-                        #return False
+                    if not data.get("estado"):
+                        raise exceptions.Warning(data.get("mensaje"))
+        
+                    indicadores = data["datos"][0]["indicadores"]
+        
+                    venta = None
+        
+                    for ind in indicadores:
+                        if ind["codigoIndicador"] == "318":
+                            venta = ind["series"][0]["valorDatoPorPeriodo"]
+        
+                    currency = company.env['res.currency'].search([('name','=','USD')], limit=1)
+        
+                    rate_date = date.strftime("%Y-%m-%d")
+        
+                    exists = company.env['res.currency.rate'].search([
+                        ('currency_id','=',currency.id),
+                        ('name','=',rate_date),
+                        ('company_id','=',company.id)
+                    ])
+        
+                    if exists:
+                        _logger.info("\tRate already exists")
                     else:
-                        currency.write({ 'rate_ids':  [ (0,0, {'name': date,'inverse_company_rate': value,'currency_id':currency.id,'company_id':company.id})]   })
-                            
+                        currency.write({
+                            'rate_ids': [(0,0,{
+                                'name': rate_date,
+                                'inverse_company_rate': venta,
+                                'currency_id': currency.id,
+                                'company_id': company.id
+                            })]
+                        })
+        
+                    return True
+                    
                 except Exception as e:
-                    log.info('-->1576088246 %s',e)
+                    _logger.error("\tBCCR ERROR: %s", e)
                     return False
                         
                 return True
